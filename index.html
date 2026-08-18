@@ -1,0 +1,1559 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes" />
+    <title>乐理闯关 · 和弦</title>
+    <style>
+        /* ===== 全局重置 & 基础样式 ===== */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: "PingFang SC", "Microsoft YaHei", system-ui, -apple-system, sans-serif;
+            background: linear-gradient(145deg, #1a0e2e 0%, #2d1b4e 40%, #1f0f3a 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 16px;
+            margin: 0;
+            position: relative;
+            overflow-x: hidden;
+        }
+        body::before,
+        body::after {
+            content: "♩ ♪ ♫ ♬";
+            position: fixed;
+            font-size: 60px;
+            color: rgba(212, 168, 67, 0.07);
+            white-space: nowrap;
+            pointer-events: none;
+            z-index: 0;
+            letter-spacing: 40px;
+        }
+        body::before {
+            top: 10%;
+            left: -20px;
+            transform: rotate(-8deg);
+        }
+        body::after {
+            bottom: 10%;
+            right: -20px;
+            transform: rotate(6deg);
+        }
+
+        /* ===== 主容器 ===== */
+        .container {
+            max-width: 720px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.07);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+            border-radius: 48px 48px 36px 36px;
+            padding: 28px 24px 32px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255, 215, 120, 0.15);
+            border: 1px solid rgba(212, 168, 67, 0.20);
+            position: relative;
+            z-index: 2;
+            transition: all 0.3s;
+        }
+
+        /* ===== 顶部标题栏 ===== */
+        .header {
+            text-align: center;
+            padding-bottom: 18px;
+            border-bottom: 2px solid rgba(212, 168, 67, 0.25);
+            margin-bottom: 22px;
+            position: relative;
+        }
+        .header .title-main {
+            font-size: clamp(18px, 4.5vw, 28px);
+            font-weight: 700;
+            color: #f5e7c8;
+            text-shadow: 0 2px 12px rgba(212, 168, 67, 0.3);
+            letter-spacing: 2px;
+        }
+        .header .title-main .gold {
+            color: #d4a843;
+        }
+        .header .title-sub {
+            font-size: clamp(13px, 2.8vw, 18px);
+            color: #c9b38b;
+            margin-top: 6px;
+            letter-spacing: 1px;
+            font-weight: 400;
+        }
+        .header .title-sub .highlight {
+            color: #e8c97a;
+            font-weight: 500;
+        }
+        .header .deco-note {
+            position: absolute;
+            font-size: 22px;
+            color: rgba(212, 168, 67, 0.25);
+            top: 4px;
+        }
+        .header .deco-note.left {
+            left: 4px;
+        }
+        .header .deco-note.right {
+            right: 4px;
+        }
+
+        /* ===== 通用卡片 ===== */
+        .card {
+            background: rgba(255, 255, 255, 0.06);
+            border-radius: 28px;
+            padding: 24px 20px;
+            border: 1px solid rgba(212, 168, 67, 0.12);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            transition: all 0.3s;
+        }
+
+        /* ===== 登录页面 ===== */
+        .login-area {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 22px;
+            padding: 18px 0 6px;
+        }
+        .login-area .icon-big {
+            font-size: 64px;
+            line-height: 1;
+            margin-bottom: 4px;
+            filter: drop-shadow(0 4px 20px rgba(212, 168, 67, 0.25));
+        }
+        .login-area .welcome-text {
+            color: #e8dcc8;
+            font-size: clamp(16px, 3.2vw, 22px);
+            font-weight: 500;
+            text-align: center;
+            line-height: 1.6;
+        }
+        .login-area .welcome-text small {
+            display: block;
+            font-size: 0.7em;
+            color: #b8a68b;
+            font-weight: 400;
+            margin-top: 2px;
+        }
+        .login-area .input-group {
+            width: 100%;
+            max-width: 380px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .login-area .input-group label {
+            color: #d4c5ae;
+            font-size: 15px;
+            font-weight: 500;
+            letter-spacing: 1px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .login-area .input-group label .emoji {
+            font-size: 20px;
+        }
+        .login-area .input-group input {
+            padding: 14px 20px;
+            border-radius: 60px;
+            border: 2px solid rgba(212, 168, 67, 0.25);
+            background: rgba(255, 255, 255, 0.07);
+            color: #f0e6d8;
+            font-size: 18px;
+            outline: none;
+            transition: all 0.3s;
+            width: 100%;
+            font-weight: 400;
+            letter-spacing: 0.5px;
+        }
+        .login-area .input-group input::placeholder {
+            color: rgba(200, 185, 165, 0.5);
+            font-weight: 300;
+        }
+        .login-area .input-group input:focus {
+            border-color: #d4a843;
+            background: rgba(255, 255, 255, 0.10);
+            box-shadow: 0 0 0 4px rgba(212, 168, 67, 0.12);
+        }
+        .login-area .btn-start {
+            padding: 16px 48px;
+            border-radius: 60px;
+            border: none;
+            background: linear-gradient(135deg, #d4a843, #b8923a);
+            color: #1a0e2e;
+            font-size: 20px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 6px 24px rgba(212, 168, 67, 0.30);
+            margin-top: 6px;
+            width: 100%;
+            max-width: 280px;
+        }
+        .login-area .btn-start:hover {
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 10px 36px rgba(212, 168, 67, 0.40);
+        }
+        .login-area .btn-start:active {
+            transform: scale(0.97);
+        }
+        .login-area .btn-start:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* ===== 游戏页面 ===== */
+        .game-area {
+            display: none;
+            flex-direction: column;
+            gap: 16px;
+        }
+        .game-area.active {
+            display: flex;
+        }
+
+        .game-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            padding: 0 4px;
+        }
+        .game-top .progress {
+            color: #d4c5ae;
+            font-size: clamp(14px, 2.6vw, 18px);
+            font-weight: 500;
+        }
+        .game-top .progress .num {
+            color: #f5e7c8;
+            font-weight: 700;
+        }
+        .game-top .timer-wrap {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(0, 0, 0, 0.30);
+            padding: 6px 16px 6px 12px;
+            border-radius: 60px;
+            border: 1px solid rgba(212, 168, 67, 0.15);
+        }
+        .game-top .timer-wrap .icon {
+            font-size: 18px;
+        }
+        .game-top .timer-wrap .time {
+            font-size: clamp(18px, 3.2vw, 26px);
+            font-weight: 700;
+            color: #f5e7c8;
+            min-width: 48px;
+            text-align: center;
+            font-variant-numeric: tabular-nums;
+        }
+        .game-top .timer-wrap .time.warning {
+            color: #f5a97f;
+            animation: pulse 0.8s ease-in-out infinite;
+        }
+        .game-top .timer-wrap .time.danger {
+            color: #f06a6a;
+            animation: pulse 0.5s ease-in-out infinite;
+        }
+        @keyframes pulse {
+            0%,
+            100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.4;
+            }
+        }
+
+        .game-round-badge {
+            display: inline-block;
+            background: rgba(212, 168, 67, 0.15);
+            color: #e8c97a;
+            padding: 4px 16px;
+            border-radius: 60px;
+            font-size: 13px;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+            border: 1px solid rgba(212, 168, 67, 0.15);
+        }
+
+        .question-box {
+            padding: 18px 6px 6px;
+        }
+        .question-box .q-text {
+            color: #f5ede4;
+            font-size: clamp(17px, 3.6vw, 24px);
+            font-weight: 600;
+            line-height: 1.7;
+            letter-spacing: 0.3px;
+            margin-bottom: 20px;
+            min-height: 3.2em;
+        }
+        .question-box .q-text .q-label {
+            color: #d4a843;
+            margin-right: 6px;
+        }
+        .question-box .q-text img {
+            max-height: 1.8em;
+            vertical-align: middle;
+            margin: 0 2px;
+        }
+        .question-box .q-text .stem-img {
+            display: inline-block;
+            max-height: 2.8em;
+            margin: 0 4px;
+            cursor: pointer;
+            transition: transform 0.2s;
+            border-radius: 4px;
+            border: 1px solid rgba(212, 168, 67, 0.15);
+            vertical-align: middle;
+        }
+        .question-box .q-text .stem-img:hover {
+            transform: scale(1.05);
+            border-color: rgba(212, 168, 67, 0.4);
+        }
+
+        /* 图片放大模态框 */
+        .image-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            cursor: pointer;
+            padding: 20px;
+        }
+        .image-modal.active {
+            display: flex;
+        }
+        .image-modal img {
+            max-width: 90%;
+            max-height: 85%;
+            object-fit: contain;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.8);
+            cursor: default;
+        }
+        .image-modal .close-hint {
+            color: rgba(255,255,255,0.5);
+            font-size: 16px;
+            margin-top: 20px;
+            letter-spacing: 1px;
+            cursor: default;
+        }
+        .image-modal .close-hint span {
+            background: rgba(255,255,255,0.1);
+            padding: 6px 18px;
+            border-radius: 30px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        /* 选项样式 */
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+        @media (max-width: 460px) {
+            .options-grid {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+        }
+        .option-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(212, 168, 67, 0.15);
+            border-radius: 18px;
+            padding: 14px 16px;
+            color: #e8dcc8;
+            font-size: clamp(15px, 2.8vw, 19px);
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: left;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            line-height: 1.4;
+            min-height: 56px;
+            letter-spacing: 0.2px;
+        }
+        .option-btn .opt-label {
+            flex-shrink: 0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: rgba(212, 168, 67, 0.12);
+            color: #d4a843;
+            font-weight: 700;
+            font-size: 15px;
+        }
+        .option-btn img {
+            max-height: 2.2em;
+            vertical-align: middle;
+            display: inline-block;
+            margin: 0 2px;
+        }
+        .option-btn:hover {
+            background: rgba(212, 168, 67, 0.10);
+            border-color: rgba(212, 168, 67, 0.35);
+            transform: translateY(-1px);
+        }
+        .option-btn:active {
+            transform: scale(0.97);
+            background: rgba(212, 168, 67, 0.15);
+        }
+        .option-btn.selected {
+            border-color: #d4a843;
+            background: rgba(212, 168, 67, 0.18);
+            box-shadow: 0 0 0 3px rgba(212, 168, 67, 0.08);
+        }
+        .option-btn.multi-selected {
+            border-color: #8ab8d4;
+            background: rgba(138, 184, 212, 0.15);
+            box-shadow: 0 0 0 3px rgba(138, 184, 212, 0.08);
+        }
+        .option-btn.clicked {
+            transform: scale(0.96);
+            transition: transform 0.08s;
+        }
+
+        .submit-area {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+        .btn-submit-answer {
+            padding: 12px 40px;
+            border-radius: 60px;
+            border: none;
+            background: linear-gradient(135deg, #e8c97a, #d4a843);
+            color: #1a0e2e;
+            font-size: 18px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 16px rgba(212, 168, 67, 0.20);
+        }
+        .btn-submit-answer:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(212, 168, 67, 0.30);
+        }
+        .btn-submit-answer:active {
+            transform: scale(0.96);
+        }
+        .btn-submit-answer:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .game-status-msg {
+            text-align: center;
+            color: #b8a68b;
+            font-size: 14px;
+            padding-top: 8px;
+            letter-spacing: 0.5px;
+            min-height: 28px;
+        }
+        .game-status-msg .highlight-text {
+            color: #e8c97a;
+        }
+        .game-status-msg .correct-feedback {
+            color: #7ddfb0;
+        }
+        .game-status-msg .wrong-feedback {
+            color: #f5a97f;
+        }
+
+        /* ===== 错题提示过渡 ===== */
+        .wrong-summary {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            gap: 14px;
+            padding: 18px 10px;
+            text-align: center;
+        }
+        .wrong-summary.active {
+            display: flex;
+        }
+        .wrong-summary .big-icon {
+            font-size: 48px;
+        }
+        .wrong-summary .msg {
+            color: #f5ede4;
+            font-size: clamp(17px, 3.2vw, 22px);
+            font-weight: 600;
+        }
+        .wrong-summary .sub-msg {
+            color: #c9b38b;
+            font-size: 15px;
+        }
+        .wrong-summary .btn-continue {
+            padding: 14px 44px;
+            border-radius: 60px;
+            border: none;
+            background: linear-gradient(135deg, #e8c97a, #d4a843);
+            color: #1a0e2e;
+            font-size: 18px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 6px 24px rgba(212, 168, 67, 0.25);
+            margin-top: 6px;
+        }
+        .wrong-summary .btn-continue:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 32px rgba(212, 168, 67, 0.35);
+        }
+
+        /* ===== 结算页面 ===== */
+        .result-area {
+            display: none;
+            flex-direction: column;
+            gap: 20px;
+            padding: 6px 0;
+        }
+        .result-area.active {
+            display: flex;
+        }
+
+        .result-header {
+            text-align: center;
+            padding-bottom: 16px;
+            border-bottom: 1px solid rgba(212, 168, 67, 0.15);
+        }
+        .result-header .trophy {
+            font-size: 56px;
+            display: block;
+            margin-bottom: 4px;
+        }
+        .result-header .title-result {
+            font-size: clamp(22px, 4.5vw, 32px);
+            font-weight: 700;
+            color: #f5e7c8;
+        }
+        .result-header .title-result .gold {
+            color: #d4a843;
+        }
+        .result-header .sub-info {
+            color: #c9b38b;
+            font-size: 16px;
+            margin-top: 4px;
+        }
+        .result-header .sub-info .account-name {
+            color: #f5e7c8;
+            font-weight: 600;
+        }
+
+        .result-badge {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: rgba(212, 168, 67, 0.08);
+            border-radius: 28px;
+            padding: 18px 12px;
+            border: 1px solid rgba(212, 168, 67, 0.12);
+        }
+        .result-badge .rank-icon {
+            font-size: 44px;
+        }
+        .result-badge .rank-name {
+            font-size: clamp(24px, 4.8vw, 34px);
+            font-weight: 800;
+            color: #d4a843;
+            text-shadow: 0 2px 16px rgba(212, 168, 67, 0.20);
+            margin-top: 2px;
+        }
+        .result-badge .rank-desc {
+            color: #b8a68b;
+            font-size: 15px;
+            margin-top: 2px;
+        }
+
+        .result-questions {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            max-height: 420px;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+        .result-questions::-webkit-scrollbar {
+            width: 4px;
+        }
+        .result-questions::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 10px;
+        }
+        .result-questions::-webkit-scrollbar-thumb {
+            background: rgba(212, 168, 67, 0.30);
+            border-radius: 10px;
+        }
+
+        .result-q-item {
+            background: rgba(255, 255, 255, 0.04);
+            border-radius: 18px;
+            padding: 14px 16px;
+            border-left: 4px solid rgba(212, 168, 67, 0.20);
+            transition: all 0.2s;
+        }
+        .result-q-item .rq-question {
+            color: #f5ede4;
+            font-size: clamp(14px, 2.4vw, 17px);
+            font-weight: 500;
+            line-height: 1.5;
+        }
+        .result-q-item .rq-question img {
+            max-height: 1.4em;
+            vertical-align: middle;
+        }
+        .result-q-item .rq-detail {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px 20px;
+            margin-top: 8px;
+            font-size: clamp(13px, 2vw, 15px);
+        }
+        .result-q-item .rq-detail .correct-answer {
+            color: #7ddfb0;
+            font-weight: 600;
+        }
+        .result-q-item .rq-detail .your-answer {
+            color: #e8dcc8;
+            font-weight: 500;
+        }
+        .result-q-item .rq-detail .your-answer.wrong {
+            color: #f06a6a;
+        }
+        .result-q-item .rq-detail .your-answer.correct {
+            color: #7ddfb0;
+        }
+        .result-q-item .rq-status {
+            display: inline-block;
+            font-size: 13px;
+            font-weight: 600;
+            padding: 2px 14px;
+            border-radius: 60px;
+            margin-left: 4px;
+        }
+        .result-q-item .rq-status.pass {
+            color: #7ddfb0;
+            background: rgba(125, 223, 176, 0.10);
+        }
+        .result-q-item .rq-status.fail {
+            color: #f06a6a;
+            background: rgba(240, 106, 106, 0.10);
+        }
+        .result-q-item .rq-status.retry-pass {
+            color: #e8c97a;
+            background: rgba(232, 201, 122, 0.12);
+        }
+
+        .result-actions {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+            flex-wrap: wrap;
+            padding-top: 6px;
+        }
+        .result-actions .btn-restart {
+            padding: 14px 40px;
+            border-radius: 60px;
+            border: none;
+            background: linear-gradient(135deg, #d4a843, #b8923a);
+            color: #1a0e2e;
+            font-size: 18px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 6px 24px rgba(212, 168, 67, 0.25);
+        }
+        .result-actions .btn-restart:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 32px rgba(212, 168, 67, 0.35);
+        }
+
+        /* ===== 通用工具 ===== */
+        .hidden {
+            display: none !important;
+        }
+        .text-center {
+            text-align: center;
+        }
+        .mt-8 {
+            margin-top: 8px;
+        }
+        .gap-8 {
+            gap: 8px;
+        }
+
+        /* ===== 响应式微调 ===== */
+        @media (max-width: 480px) {
+            .container {
+                padding: 18px 14px 22px;
+                border-radius: 32px 32px 24px 24px;
+            }
+            .card {
+                padding: 18px 14px;
+                border-radius: 20px;
+            }
+            .option-btn {
+                padding: 12px 14px;
+                min-height: 48px;
+                font-size: 15px;
+            }
+            .option-btn .opt-label {
+                width: 26px;
+                height: 26px;
+                font-size: 13px;
+            }
+            .game-top .timer-wrap {
+                padding: 4px 12px 4px 8px;
+            }
+            .result-q-item {
+                padding: 12px 14px;
+            }
+            .login-area .btn-start {
+                padding: 14px 32px;
+                font-size: 18px;
+            }
+            .header .title-main {
+                letter-spacing: 0.5px;
+            }
+            .header .deco-note {
+                display: none;
+            }
+            .question-box .q-text .stem-img {
+                max-height: 2.2em;
+            }
+        }
+        @media (max-width: 380px) {
+            .container {
+                padding: 12px 10px 16px;
+                border-radius: 24px;
+            }
+            .option-btn {
+                font-size: 13px;
+                padding: 10px 12px;
+                min-height: 42px;
+            }
+            .question-box .q-text {
+                font-size: 15px;
+            }
+            .game-top .timer-wrap .time {
+                font-size: 20px;
+                min-width: 36px;
+            }
+            .question-box .q-text .stem-img {
+                max-height: 2em;
+            }
+        }
+
+        /* ===== 进场动画 ===== */
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(18px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .fade-up {
+            animation: fadeUp 0.45s ease-out forwards;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container" id="app">
+        <!-- ===== 顶部标题 ===== -->
+        <div class="header">
+            <span class="deco-note left">♩</span>
+            <span class="deco-note right">♪</span>
+            <div class="title-main">
+                🎵 2026年南执高一音乐生乐理命题大赛<br />
+                <span class="gold">——《和弦》</span>
+            </div>
+            <div class="title-sub">
+                命题人：<span class="highlight">高子馨</span>
+            </div>
+        </div>
+
+        <!-- ===== 登录页面 ===== -->
+        <div id="loginPage" class="login-area fade-up">
+            <div class="icon-big">🎶</div>
+            <div class="welcome-text">
+                欢迎参加乐理闯关
+                <small>填写账号，开启你的音乐之旅</small>
+            </div>
+            <div class="input-group">
+                <label>
+                    <span class="emoji">🎓</span> 你的账号
+                </label>
+                <input type="text" id="accountInput" placeholder="请输入姓名或学号" maxlength="20" autocomplete="off" />
+            </div>
+            <button class="btn-start" id="btnStart">开始闯关 →</button>
+        </div>
+
+        <!-- ===== 游戏页面 ===== -->
+        <div id="gamePage" class="game-area">
+            <div class="game-top">
+                <div class="progress">
+                    第 <span class="num" id="currentNum">1</span> / <span id="totalNum">5</span> 题
+                </div>
+                <div class="timer-wrap">
+                    <span class="icon">⏱</span>
+                    <span class="time" id="timerDisplay">120</span>
+                    <span style="color:#b8a68b;font-size:13px;">s</span>
+                </div>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;">
+                <span class="game-round-badge" id="roundBadge">🏁 第 1 轮</span>
+                <span style="color:#b8a68b;font-size:13px;" id="gameHint">选择选项，点击提交</span>
+            </div>
+
+            <div class="card question-box">
+                <div class="q-text" id="questionText">
+                    <span class="q-label">Q.</span> 加载题目...
+                </div>
+                <div id="answerContainer">
+                    <!-- 动态渲染选项 -->
+                </div>
+                <div class="submit-area">
+                    <button class="btn-submit-answer" id="btnSubmitAnswer">提交答案</button>
+                </div>
+            </div>
+
+            <div class="game-status-msg" id="statusMsg">
+                <span>💡 选择后点击「提交答案」</span>
+            </div>
+        </div>
+
+        <!-- ===== 错题重做提示（过渡页） ===== -->
+        <div id="wrongSummary" class="wrong-summary">
+            <div class="big-icon">📝</div>
+            <div class="msg" id="wrongMsg">你答错了 <span id="wrongCountDisplay">0</span> 题</div>
+            <div class="sub-msg">请重新做这些错题，直到全部正确</div>
+            <button class="btn-continue" id="btnRetry">开始重做 →</button>
+        </div>
+
+        <!-- ===== 结算页面 ===== -->
+        <div id="resultPage" class="result-area">
+            <div class="result-header">
+                <span class="trophy">🏆</span>
+                <div class="title-result">闯关<span class="gold">完成</span>！</div>
+                <div class="sub-info">
+                    账号：<span class="account-name" id="resultAccount">—</span>
+                </div>
+            </div>
+
+            <div class="result-badge">
+                <span class="rank-icon" id="rankIcon">🌟</span>
+                <div class="rank-name" id="rankName">乐理大师</div>
+                <div class="rank-desc" id="rankDesc">完美通关，太棒了！</div>
+            </div>
+
+            <div style="color:#c9b38b;font-size:15px;font-weight:500;padding:0 4px;">
+                📋 答题回顾（第一轮作答情况）
+            </div>
+            <div class="result-questions" id="resultQuestions">
+                <!-- 由 JS 动态生成 -->
+            </div>
+
+            <div class="result-actions">
+                <button class="btn-restart" id="btnRestart">🔄 再来一次</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== 图片放大模态框 ===== -->
+    <div class="image-modal" id="imageModal">
+        <img id="modalImage" src="" alt="放大图片" />
+        <div class="close-hint"><span>点击任意处关闭</span></div>
+    </div>
+
+    <script>
+        // ============================================================
+        //  数据：5 道乐理题（全部单选），第1、2、3、5题含图片
+        //  图片命名：Q1.jpg, Q2.jpg, Q3.jpg, Q5.jpg（Q4无图）
+        //  答案：1.C, 2.B, 3.D, 4.B, 5.C
+        // ============================================================
+        const QUESTION_BANK = [{
+            id: 0,
+            type: 'single',
+            question: '下列和弦中是大七和弦的是（ ）<br><img src="./images/Q1.jpg" class="stem-img" onerror="this.style.display=\'none\'">',
+            options: ['A', 'B', 'C', 'D'],
+            answer: 2 // C
+        }, {
+            id: 1,
+            type: 'single',
+            question: '下列哪个和弦是增三和弦的转位（ ）<br><img src="./images/Q2.jpg" class="stem-img" onerror="this.style.display=\'none\'">',
+            options: ['A', 'B', 'C', 'D'],
+            answer: 1 // B
+        }, {
+            id: 2,
+            type: 'single',
+            question: '下列和弦中，哪个为以B为七音构成的小七和弦（ ）<br><img src="./images/Q3.jpg" class="stem-img" onerror="this.style.display=\'none\'">',
+            options: ['A', 'B', 'C', 'D'],
+            answer: 3 // D
+        }, {
+            id: 3,
+            type: 'single',
+            question: '将减小七和弦的根音降低增一度后，其新和弦为（ ）',
+            options: ['A. 大小七和弦', 'B. 大七和弦', 'C. 小七和弦', 'D. 增大七和弦'],
+            answer: 1 // B
+        }, {
+            id: 4,
+            type: 'single',
+            question: '和弦 <img src="./images/Q5.jpg" class="stem-img" onerror="this.style.display=\'none\'"> 的名称为（ ）',
+            options: ['A. 减三和弦', 'B. 减小七和弦', 'C. 减六和弦', 'D. 小六和弦'],
+            answer: 2 // C
+        }];
+
+        const LABELS = ['A', 'B', 'C', 'D'];
+
+        // ============================================================
+        //  状态
+        // ============================================================
+        const state = {
+            account: '',
+            phase: 'login',
+            allQuestions: [],
+            currentQuestions: [],
+            currentIndex: 0,
+            currentSelection: null,
+            answersMap: {},
+            firstAnswersMap: {},
+            wrongIds: [],
+            totalWrongCount: 0,
+            round: 1,
+            timer: 120,
+            timerId: null,
+            allCorrect: false,
+            isAnswering: false,
+            retryCorrectMap: {},
+            currentRoundCorrectIds: [],
+        };
+
+        // ============================================================
+        //  DOM 引用
+        // ============================================================
+        const $ = (id) => document.getElementById(id);
+        const loginPage = $('loginPage');
+        const gamePage = $('gamePage');
+        const wrongSummary = $('wrongSummary');
+        const resultPage = $('resultPage');
+
+        const accountInput = $('accountInput');
+        const btnStart = $('btnStart');
+        const currentNum = $('currentNum');
+        const totalNum = $('totalNum');
+        const timerDisplay = $('timerDisplay');
+        const roundBadge = $('roundBadge');
+        const gameHint = $('gameHint');
+        const questionText = $('questionText');
+        const answerContainer = $('answerContainer');
+        const statusMsg = $('statusMsg');
+        const btnSubmitAnswer = $('btnSubmitAnswer');
+
+        const wrongMsg = $('wrongMsg');
+        const wrongCountDisplay = $('wrongCountDisplay');
+        const btnRetry = $('btnRetry');
+
+        const resultAccount = $('resultAccount');
+        const rankIcon = $('rankIcon');
+        const rankName = $('rankName');
+        const rankDesc = $('rankDesc');
+        const resultQuestions = $('resultQuestions');
+        const btnRestart = $('btnRestart');
+
+        // 模态框元素
+        const imageModal = $('imageModal');
+        const modalImage = $('modalImage');
+
+        // ============================================================
+        //  工具函数
+        // ============================================================
+        function shuffle(arr) {
+            const a = [...arr];
+            for (let i = a.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [a[i], a[j]] = [a[j], a[i]];
+            }
+            return a;
+        }
+
+        function getOptionLabel(index) {
+            return LABELS[index] || '?';
+        }
+
+        function isAnswerEqual(userAns, correctAns) {
+            return userAns === correctAns;
+        }
+
+        function getRank(firstWrongCount, totalWrong) {
+            if (firstWrongCount === 0) {
+                return { icon: '🌟', name: '乐理大师', desc: '完美通关，无懈可击！' };
+            } else if (firstWrongCount === 1) {
+                return { icon: '🎵', name: '乐理高手', desc: '仅错一题，实力不凡！' };
+            } else if (firstWrongCount === 2) {
+                return { icon: '📚', name: '乐理学者', desc: '略有失误，再接再厉！' };
+            } else if (firstWrongCount === 3) {
+                return { icon: '🎶', name: '乐理探索者', desc: '勇于挑战，继续前行！' };
+            } else {
+                return { icon: '🌱', name: '乐理学徒', desc: '勤能补拙，未来可期！' };
+            }
+        }
+
+        // ============================================================
+        //  图片放大功能
+        // ============================================================
+        function setupImageZoom() {
+            const images = document.querySelectorAll('.stem-img');
+            images.forEach(img => {
+                img.removeEventListener('click', imageClickHandler);
+                img.addEventListener('click', imageClickHandler);
+            });
+        }
+
+        function imageClickHandler(e) {
+            e.stopPropagation();
+            const img = e.currentTarget;
+            modalImage.src = img.src;
+            imageModal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal() {
+            imageModal.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        imageModal.addEventListener('click', closeModal);
+        modalImage.addEventListener('click', (e) => e.stopPropagation());
+
+        // ============================================================
+        //  游戏核心逻辑
+        // ============================================================
+
+        function initRound(questions, isRetry = false) {
+            state.currentQuestions = shuffle(questions);
+            state.currentIndex = 0;
+            state.currentSelection = null;
+            state.currentRoundCorrectIds = [];
+            state.isAnswering = false;
+            state.answersMap = {};
+
+            if (!isRetry) {
+                state.allQuestions = state.currentQuestions.map(q => ({ ...q }));
+                state.firstAnswersMap = {};
+                state.retryCorrectMap = {};
+                state.totalWrongCount = 0;
+                state.round = 1;
+            } else {
+                state.round++;
+            }
+
+            updateRoundBadge();
+            showQuestion();
+            startTimer();
+            gameHint.textContent = isRetry ? '🔁 错题重做，认真审题' : '选择选项，点击提交';
+            statusMsg.innerHTML = isRetry ?
+                '<span>📌 错题重做中，全部答对即可通关</span>' :
+                '<span>💡 选择后点击「提交答案」</span>';
+        }
+
+        function showQuestion() {
+            const qs = state.currentQuestions;
+            const idx = state.currentIndex;
+            if (idx >= qs.length) {
+                finishRound();
+                return;
+            }
+            const q = qs[idx];
+            const total = qs.length;
+            currentNum.textContent = idx + 1;
+            totalNum.textContent = total;
+
+            questionText.innerHTML = `<span class="q-label">Q${q.id + 1}.</span> ${q.question}`;
+
+            answerContainer.innerHTML = '';
+            const grid = document.createElement('div');
+            grid.className = 'options-grid';
+            q.options.forEach((optText, i) => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.dataset.index = i;
+                btn.innerHTML = `<span class="opt-label">${getOptionLabel(i)}</span> ${optText}`;
+                btn.addEventListener('click', () => handleOptionClick(i));
+                grid.appendChild(btn);
+            });
+            answerContainer.appendChild(grid);
+
+            const prev = state.currentSelection;
+            if (prev !== null && prev !== undefined) {
+                const btns = grid.querySelectorAll('.option-btn');
+                if (typeof prev === 'number' && btns[prev]) {
+                    btns[prev].classList.add('selected');
+                }
+            }
+
+            // 为图片绑定点击放大
+            setupImageZoom();
+
+            btnSubmitAnswer.disabled = false;
+            resetTimer();
+            startTimer();
+        }
+
+        function handleOptionClick(index) {
+            if (state.isAnswering) return;
+            const qs = state.currentQuestions;
+            const idx = state.currentIndex;
+            if (idx >= qs.length) return;
+
+            const grid = answerContainer.querySelector('.options-grid');
+            if (!grid) return;
+            const btns = grid.querySelectorAll('.option-btn');
+
+            btns.forEach((btn, i) => {
+                btn.classList.remove('selected');
+                if (i === index) {
+                    btn.classList.add('selected');
+                }
+            });
+            state.currentSelection = index;
+        }
+
+        function handleSubmit() {
+            if (state.isAnswering) return;
+            const qs = state.currentQuestions;
+            const idx = state.currentIndex;
+            if (idx >= qs.length) return;
+            const q = qs[idx];
+
+            const selection = state.currentSelection;
+            if (selection === null || selection === undefined) {
+                statusMsg.innerHTML = '<span style="color:#f5a97f;">⚠️ 请先选择一个选项</span>';
+                return;
+            }
+
+            state.answersMap[q.id] = selection;
+            if (state.round === 1 && !(q.id in state.firstAnswersMap)) {
+                state.firstAnswersMap[q.id] = selection;
+            }
+
+            const isCorrect = isAnswerEqual(selection, q.answer);
+            const feedback = isCorrect ? '✅ 回答正确！' : '❌ 回答错误';
+            const className = isCorrect ? 'correct-feedback' : 'wrong-feedback';
+            statusMsg.innerHTML = `<span class="${className}">${feedback}</span>`;
+
+            if (state.round > 1 && isCorrect) {
+                if (!state.currentRoundCorrectIds.includes(q.id)) {
+                    state.currentRoundCorrectIds.push(q.id);
+                }
+            }
+
+            btnSubmitAnswer.disabled = true;
+            state.isAnswering = true;
+
+            setTimeout(() => {
+                state.isAnswering = false;
+                state.currentSelection = null;
+                state.currentIndex++;
+                if (state.currentIndex < qs.length) {
+                    statusMsg.innerHTML = state.round > 1 ?
+                        '<span>📌 错题重做中，全部答对即可通关</span>' :
+                        '<span>💡 选择后点击「提交答案」</span>';
+                }
+                showQuestion();
+            }, 800);
+        }
+
+        function finishRound() {
+            stopTimer();
+            const qs = state.currentQuestions;
+            const wrongIds = [];
+
+            qs.forEach(q => {
+                const selected = state.answersMap[q.id];
+                let isWrong = false;
+                if (selected === undefined || selected === null) {
+                    isWrong = true;
+                } else if (selected !== q.answer) {
+                    isWrong = true;
+                }
+                if (isWrong) wrongIds.push(q.id);
+            });
+
+            state.totalWrongCount += wrongIds.length;
+
+            if (state.round === 1) {
+                state.wrongIds = wrongIds;
+            } else {
+                state.wrongIds = wrongIds;
+            }
+
+            if (wrongIds.length === 0) {
+                state.allCorrect = true;
+                showResult();
+                return;
+            }
+
+            showWrongSummary(wrongIds);
+        }
+
+        function showWrongSummary(wrongIds) {
+            gamePage.classList.remove('active');
+            wrongSummary.classList.add('active');
+
+            wrongCountDisplay.textContent = wrongIds.length;
+            const qText = wrongIds.length === 1 ? '题' : '题';
+            wrongMsg.innerHTML =
+                `你答错了 <span style="color:#f5a97f;font-weight:700;">${wrongIds.length}</span> ${qText}`;
+
+            if (state.round > 1) {
+                const subMsg = wrongSummary.querySelector('.sub-msg');
+                subMsg.textContent = `第 ${state.round} 轮还有 ${wrongIds.length} 题未通过，继续加油！`;
+            } else {
+                const subMsg = wrongSummary.querySelector('.sub-msg');
+                subMsg.textContent = '请重新做这些错题，直到全部正确 💪';
+            }
+
+            btnRetry.onclick = () => {
+                wrongSummary.classList.remove('active');
+                const wrongQuestions = QUESTION_BANK.filter(q => wrongIds.includes(q.id));
+                const shuffledWrong = shuffle(wrongQuestions);
+                state.currentQuestions = shuffledWrong;
+                state.currentIndex = 0;
+                state.currentSelection = null;
+                state.answersMap = {};
+                state.currentRoundCorrectIds = [];
+                state.isAnswering = false;
+                state.round++;
+
+                gamePage.classList.add('active');
+                gamePage.classList.add('review');
+                updateRoundBadge();
+                gameHint.textContent = `🔁 错题重做 (第 ${state.round} 轮)`;
+                statusMsg.innerHTML = '<span>📌 全部答对即可通关，加油！</span>';
+                showQuestion();
+                startTimer();
+            };
+        }
+
+        function updateRoundBadge() {
+            const isReview = state.round > 1;
+            const icon = isReview ? '🔁' : '🏁';
+            const label = isReview ? `第 ${state.round} 轮 (错题重做)` : `第 1 轮`;
+            roundBadge.textContent = `${icon} ${label}`;
+            if (isReview) {
+                roundBadge.style.borderColor = 'rgba(245, 169, 127, 0.30)';
+                roundBadge.style.color = '#f5a97f';
+            } else {
+                roundBadge.style.borderColor = 'rgba(212, 168, 67, 0.15)';
+                roundBadge.style.color = '#e8c97a';
+            }
+        }
+
+        // ============================================================
+        //  计时器
+        // ============================================================
+        function startTimer() {
+            resetTimer();
+            state.timer = 120;
+            updateTimerDisplay();
+            state.timerId = setInterval(() => {
+                state.timer--;
+                updateTimerDisplay();
+                if (state.timer <= 0) {
+                    clearInterval(state.timerId);
+                    state.timerId = null;
+                    handleTimeout();
+                }
+            }, 1000);
+        }
+
+        function resetTimer() {
+            if (state.timerId) {
+                clearInterval(state.timerId);
+                state.timerId = null;
+            }
+            state.timer = 120;
+            updateTimerDisplay();
+        }
+
+        function stopTimer() {
+            if (state.timerId) {
+                clearInterval(state.timerId);
+                state.timerId = null;
+            }
+        }
+
+        function updateTimerDisplay() {
+            const t = state.timer;
+            timerDisplay.textContent = t;
+            timerDisplay.classList.remove('warning', 'danger');
+            if (t <= 10) timerDisplay.classList.add('danger');
+            else if (t <= 30) timerDisplay.classList.add('warning');
+        }
+
+        function handleTimeout() {
+            if (state.isAnswering) return;
+            const qs = state.currentQuestions;
+            const idx = state.currentIndex;
+            if (idx >= qs.length) return;
+            const q = qs[idx];
+
+            const selection = state.currentSelection;
+            if (selection === null || selection === undefined) {
+                state.answersMap[q.id] = null;
+                if (state.round === 1 && !(q.id in state.firstAnswersMap)) {
+                    state.firstAnswersMap[q.id] = null;
+                }
+            } else {
+                state.answersMap[q.id] = selection;
+                if (state.round === 1 && !(q.id in state.firstAnswersMap)) {
+                    state.firstAnswersMap[q.id] = selection;
+                }
+            }
+
+            statusMsg.innerHTML = '<span style="color:#f5a97f;">⏰ 时间到！已自动提交</span>';
+            btnSubmitAnswer.disabled = true;
+            state.isAnswering = true;
+            setTimeout(() => {
+                state.isAnswering = false;
+                state.currentSelection = null;
+                state.currentIndex++;
+                if (state.currentIndex < qs.length) {
+                    statusMsg.innerHTML = state.round > 1 ?
+                        '<span>📌 错题重做中，全部答对即可通关</span>' :
+                        '<span>💡 选择后点击「提交答案」</span>';
+                }
+                showQuestion();
+            }, 600);
+        }
+
+        // ============================================================
+        //  结算
+        // ============================================================
+        function showResult() {
+            stopTimer();
+            gamePage.classList.remove('active');
+            wrongSummary.classList.remove('active');
+            resultPage.classList.add('active');
+
+            let firstWrongCount = 0;
+            const firstRoundQuestions = state.allQuestions;
+            firstRoundQuestions.forEach(q => {
+                const ans = state.firstAnswersMap[q.id];
+                let isWrong = false;
+                if (ans === undefined || ans === null) {
+                    isWrong = true;
+                } else if (ans !== q.answer) {
+                    isWrong = true;
+                }
+                if (isWrong) firstWrongCount++;
+            });
+
+            const rank = getRank(firstWrongCount, state.totalWrongCount);
+            rankIcon.textContent = rank.icon;
+            rankName.textContent = rank.name;
+            rankDesc.textContent = rank.desc;
+            resultAccount.textContent = state.account || '同学';
+
+            resultQuestions.innerHTML = '';
+            firstRoundQuestions.forEach((q, idx) => {
+                const firstAns = state.firstAnswersMap[q.id];
+                let isCorrect = false;
+                let answerDisplay = '';
+                let correctDisplay = q.options[q.answer] || '';
+
+                if (firstAns === null || firstAns === undefined) {
+                    answerDisplay = '未作答';
+                } else {
+                    answerDisplay = q.options[firstAns] || '';
+                }
+
+                if (firstAns !== undefined && firstAns !== null && firstAns === q.answer) {
+                    isCorrect = true;
+                }
+
+                const finalCorrect = state.retryCorrectMap[q.id] || isCorrect;
+
+                const div = document.createElement('div');
+                div.className = 'result-q-item';
+
+                let statusHtml = '';
+                if (isCorrect) {
+                    statusHtml = `<span class="rq-status pass">✅ 正确</span>`;
+                } else if (finalCorrect && !isCorrect) {
+                    statusHtml = `<span class="rq-status retry-pass">🔄 练习后掌握</span>`;
+                } else {
+                    statusHtml = `<span class="rq-status fail">❌ 错误</span>`;
+                }
+
+                div.innerHTML = `
+                    <div class="rq-question">
+                        <strong>${idx + 1}.</strong> ${q.question}
+                    </div>
+                    <div class="rq-detail">
+                        <span>✅ 正确答案：<span class="correct-answer">${correctDisplay}</span></span>
+                        <span>📝 你的答案：<span class="your-answer ${isCorrect ? 'correct' : 'wrong'}">${answerDisplay}</span></span>
+                        ${statusHtml}
+                    </div>
+                `;
+                resultQuestions.appendChild(div);
+            });
+
+            resultPage.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        // ============================================================
+        //  重置 / 重新开始
+        // ============================================================
+        function resetGame() {
+            stopTimer();
+            state.phase = 'login';
+            state.allCorrect = false;
+            state.round = 1;
+            state.wrongIds = [];
+            state.currentQuestions = [];
+            state.currentIndex = 0;
+            state.currentSelection = null;
+            state.answersMap = {};
+            state.firstAnswersMap = {};
+            state.retryCorrectMap = {};
+            state.totalWrongCount = 0;
+            state.isAnswering = false;
+
+            loginPage.style.display = 'flex';
+            gamePage.classList.remove('active');
+            gamePage.classList.remove('review');
+            wrongSummary.classList.remove('active');
+            resultPage.classList.remove('active');
+
+            timerDisplay.textContent = '120';
+            timerDisplay.classList.remove('warning', 'danger');
+            accountInput.value = '';
+            btnStart.disabled = false;
+
+            statusMsg.innerHTML = '<span>💡 选择后点击「提交答案」</span>';
+            gameHint.textContent = '选择选项，点击提交';
+            roundBadge.textContent = '🏁 第 1 轮';
+            roundBadge.style.borderColor = 'rgba(212, 168, 67, 0.15)';
+            roundBadge.style.color = '#e8c97a';
+
+            const subMsg = wrongSummary.querySelector('.sub-msg');
+            subMsg.textContent = '请重新做这些错题，直到全部正确 💪';
+
+            answerContainer.innerHTML = '';
+            questionText.innerHTML = '<span class="q-label">Q.</span> 准备开始...';
+            currentNum.textContent = '1';
+            totalNum.textContent = '5';
+            btnSubmitAnswer.disabled = false;
+        }
+
+        // ============================================================
+        //  初始化 & 事件绑定
+        // ============================================================
+
+        btnStart.addEventListener('click', () => {
+            const account = accountInput.value.trim();
+            if (!account) {
+                accountInput.style.borderColor = '#f06a6a';
+                accountInput.focus();
+                setTimeout(() => { accountInput.style.borderColor = ''; }, 1500);
+                return;
+            }
+            state.account = account;
+            startGame();
+        });
+
+        accountInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') btnStart.click();
+        });
+
+        btnSubmitAnswer.addEventListener('click', handleSubmit);
+
+        btnRestart.addEventListener('click', () => {
+            resetGame();
+            setTimeout(() => accountInput.focus(), 200);
+        });
+
+        function startGame() {
+            loginPage.style.display = 'none';
+            gamePage.classList.add('active');
+            gamePage.classList.remove('review');
+
+            const shuffled = shuffle(QUESTION_BANK);
+            state.allQuestions = shuffled.map(q => ({ ...q }));
+            state.firstAnswersMap = {};
+            state.retryCorrectMap = {};
+            state.totalWrongCount = 0;
+            state.round = 1;
+            state.wrongIds = [];
+
+            state.currentQuestions = shuffled.map(q => ({ ...q }));
+            state.currentIndex = 0;
+            state.currentSelection = null;
+            state.answersMap = {};
+            state.isAnswering = false;
+
+            updateRoundBadge();
+            gameHint.textContent = '选择选项，点击提交';
+            statusMsg.innerHTML = '<span>💡 选择后点击「提交答案」</span>';
+            showQuestion();
+            startTimer();
+        }
+
+        // 键盘事件：ESC关闭模态框
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeModal();
+            }
+        });
+
+        document.addEventListener('visibilitychange', () => {});
+
+        resetGame();
+        window.addEventListener('load', () => setTimeout(() => accountInput.focus(), 300));
+        document.addEventListener('touchstart', function() {}, { passive: true });
+
+        console.log('🎵 乐理闯关小游戏已加载！（和弦 · 高子馨）');
+        console.log('📚 题目数量:', QUESTION_BANK.length);
+        console.log('✅ 答案已设置：1.C, 2.B, 3.D, 4.B, 5.C');
+        console.log('💡 图片路径：Q1.jpg, Q2.jpg, Q3.jpg, Q5.jpg 置于 ./images/ 目录');
+    </script>
+
+</body>
+</html>
